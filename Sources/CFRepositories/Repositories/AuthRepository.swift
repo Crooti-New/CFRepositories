@@ -77,7 +77,7 @@ extension AuthRepositoryImpl: AuthRepository {
     }
     
     func getUserInfo() async throws -> UserInfo {
-        
+        return UserInfo(email: "", firstName: "", lastName: "", username: "", userImageLink: "", emailConfirmed: true, numberOfShares: 0, numberOfFavourites: 0, phoneNumberConfirmed: true, phoneNumber: "", registeredOn: "", allowLogin: true, enablePushNotifications: true)
     }
     
     func syncDeviceInfo() {

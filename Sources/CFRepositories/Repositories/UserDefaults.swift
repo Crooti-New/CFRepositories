@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import CFRepositories
 import SwiftUI
 import UIKit
 
@@ -17,7 +16,7 @@ public enum UserDefaultKey: String {
 
 public struct UserDefaultHandler {
     static let udStandard = UserDefaults.standard
-    var userTokenInfo: TokenInfo? {
+    static var userTokenInfo: TokenInfo? {
         get {
             UserDefaults.standard.codableObject(dataType: TokenInfo.self, key: UserDefaultKey.userTokenInfo.rawValue)
         }
@@ -26,7 +25,7 @@ public struct UserDefaultHandler {
         }
     }
     
-    var userInfo: UserInfo? {
+    static var userInfo: UserInfo? {
         get {
             UserDefaults.standard.codableObject(dataType: UserInfo.self, key: UserDefaultKey.userInfo.rawValue)
         }
