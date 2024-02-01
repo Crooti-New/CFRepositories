@@ -12,6 +12,8 @@ import UIKit
 public enum UserDefaultKey: String {
     case userTokenInfo = "userTokenInfo"
     case userInfo = "userInfo"
+    case userSelectedLanguage = "userSelectedLanguage"
+    case pushDeviceToken = "pushDeviceToken"
 }
 
 public struct UserDefaultHandler {
@@ -25,12 +27,30 @@ public struct UserDefaultHandler {
         }
     }
     
-    static var userInfo: UserInfo? {
+    static var userInfo: User? {
         get {
-            UserDefaults.standard.codableObject(dataType: UserInfo.self, key: UserDefaultKey.userInfo.rawValue)
+            UserDefaults.standard.codableObject(dataType: User.self, key: UserDefaultKey.userInfo.rawValue)
         }
         set {
             UserDefaults.standard.setCodableObject(newValue, forKey: UserDefaultKey.userInfo.rawValue)
+        }
+    }
+    
+    static var userSelectedLanguage: String? {
+        get {
+            UserDefaults.standard.string(forKey: UserDefaultKey.userSelectedLanguage.rawValue)
+        }
+        set {
+            UserDefaults.standard.setValue(newValue, forKey: UserDefaultKey.userSelectedLanguage.rawValue)
+        }
+    }
+    
+    static var pushDeviceToken: String? {
+        get {
+            UserDefaults.standard.string(forKey: UserDefaultKey.pushDeviceToken.rawValue)
+        }
+        set {
+            UserDefaults.standard.setValue(newValue, forKey: UserDefaultKey.pushDeviceToken.rawValue)
         }
     }
 }

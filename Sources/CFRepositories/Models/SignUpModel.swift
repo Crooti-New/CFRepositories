@@ -42,14 +42,8 @@ public struct SignUpModel {
 
 public struct SignUpInfo: Codable {
     public let meta: MetaData?
-    public let data: UserInfo?
+    public let data: User?
     public let pagination: PagingData?
-}
-
-public struct MetaData: Codable {
-    public let code: Int?
-    public let errorMessage: String?
-    public let errorType: String?
 }
 
 public struct PagingData: Codable {

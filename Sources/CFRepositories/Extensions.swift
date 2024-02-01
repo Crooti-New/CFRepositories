@@ -11,11 +11,12 @@ import Foundation
 import UIKit
 
 var authHeader: HTTPHeaders? {
-//    guard let token: String = try? KeychainStore.shared.find(for: .token) else {
-//        return nil
-//    }
-//    return ["Authorization": "Bearer " + "token"]
-    return nil
+    guard let token: TokenInfo = UserDefaultHandler.userTokenInfo else {
+        return nil
+    }
+    let culture = UserDefaultHandler.userSelectedLanguage
+    return ["Authorization": "Bearer " + token.access_token,
+            "Culture": culture ?? "en"]
 }
 
 public extension String {

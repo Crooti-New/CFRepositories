@@ -19,11 +19,11 @@ public protocol AppState {
 }
 
 public protocol UserData: AnyObject {
-    var userInfo: UserInfo? { get set }
+    var userInfo: User? { get set }
 }
 
 public protocol AppSession: AnyObject {
-    var userInfo: UserInfo? { get set }
+    var userInfo: User? { get set }
 }
 
 public protocol System {

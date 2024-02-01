@@ -9,11 +9,12 @@
 #if canImport(Combine) && os(iOS)
 import Combine
 import Foundation
+import UIKit
 
 public protocol AuthRepository: WebRepository {
     func signIn(email: String, password: String) async throws -> TokenInfo
-    func getUserInfo() async throws -> UserInfo
-    func syncDeviceInfo()
+    func getUserInfo() async throws -> User
+    func syncDeviceInfo() async throws -> Bool
     func signUp(model: SignUpModel) async throws -> SignUpInfo
 }
 
@@ -44,7 +45,6 @@ public enum AuthError: Error, LocalizedError {
 // MARK: - Async impl
 extension AuthRepositoryImpl: AuthRepository {
     func signIn(email: String, password: String) async throws -> TokenInfo {
-        
         let param: Parameters = [
             Constants.IdentityClientIdHeader: Constants.IdentityClientIdValue,
             Constants.IdentityClientSecretHeader: Constants.IdentityClientSecretValue,
@@ -57,12 +57,39 @@ extension AuthRepositoryImpl: AuthRepository {
         return tokenInfo
     }
     
-    func getUserInfo() async throws -> UserInfo {
-        return UserInfo(email: "", firstName: "", lastName: "", username: "", userImageLink: "", emailConfirmed: true, numberOfShares: 0, numberOfFavourites: 0, phoneNumberConfirmed: true, phoneNumber: "", registeredOn: "", allowLogin: true, enablePushNotifications: true)
+    func getUserInfo() async throws -> User {
+        let user: User = try await execute(endpoint: API.getUserInfo, logLevel: .debug)
+        
+        if user.meta?.code == 200 {
+            UserDefaultHandler.userInfo = user
+            return user
+        } else {
+            throw NSError(domain: user.meta?.errorType ?? "", code: user.meta?.code ?? 400, userInfo: [NSLocalizedDescriptionKey: user.meta?.errorMessage ?? ""])
+        }
     }
     
-    func syncDeviceInfo() {
+    func syncDeviceInfo() async throws -> Bool {
+        let appVersionString: String = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as! String
+        let osVersion = await UIDevice.current.systemVersion
+        let manufacturer = await UIDevice.current.model
+        let model = GeneralFunctions.getDeviceType()
+        let token = UserDefaultHandler.pushDeviceToken
         
+        
+        let param: Parameters = [
+            "appVersion": appVersionString,
+            "osVersion": osVersion,
+            "manufacturer": manufacturer,
+            "modelNumber": model,
+            "deviceToken": token ?? ""
+        ]
+        let result = try await execute(endpoint: API.syncDeviceInfo(param: param), logLevel: .debug)
+        let json = try? JSON(data: result.data)
+        if json?["meta"]["code"].int == 200{
+            return true
+        } else {
+            return false
+        }
     }
     
     func signUp(model: SignUpModel) async throws -> SignUpInfo {
@@ -89,7 +116,7 @@ extension AuthRepositoryImpl {
         case signIn(param: Parameters),
              signUp(param: Parameters),
              forgotPassword(param: Parameters),
-             getUserInfo(param: Parameters),
+             getUserInfo,
              syncDeviceInfo(param: Parameters)
         
         var endPoint: Endpoint {
@@ -113,8 +140,8 @@ extension AuthRepositoryImpl {
                 return .requestParameters(bodyParameters: param, encoding: .jsonEncoding)
             case .signIn(let param):
                 return .requestParameters(encoding: .urlEncodingPOST, urlParameters: param)
-            case .getUserInfo(let param):
-                return .requestParameters(encoding: .urlEncodingGET, urlParameters: param)
+            case .getUserInfo:
+                return .requestParameters(encoding: .urlEncodingGET, urlParameters: nil)
             }
         }
         

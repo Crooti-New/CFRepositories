@@ -13,18 +13,23 @@ public struct TokenInfo: Codable {
     let refresh_token: String
 }
 
-public struct UserInfo: Codable {
-    public let email: String
-    let firstName: String
-    let lastName: String
-    let username: String
-    let userImageLink: String
-    let emailConfirmed: Bool
-    let numberOfShares: Int
-    let numberOfFavourites: Int
-    let phoneNumberConfirmed: Bool
-    let phoneNumber: String
-    let registeredOn: String
-    let allowLogin: Bool
-    let enablePushNotifications: Bool
+public struct User: Codable {
+    public let meta: MetaData?
+    public let data: UserInfo?
+    
+    public struct UserInfo: Codable {
+        public let email: String
+        let firstName: String
+        let lastName: String
+        let username: String
+        let userImageLink: String
+        let emailConfirmed: Bool
+        let numberOfShares: Int
+        let numberOfFavourites: Int
+        let phoneNumberConfirmed: Bool
+        let phoneNumber: String
+        let registeredOn: String
+        let allowLogin: Bool
+        let enablePushNotifications: Bool
+    }
 }
