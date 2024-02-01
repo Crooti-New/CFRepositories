@@ -19,8 +19,4 @@ struct Constants {
     static let IdentityScopeHeader = "scope"
     static let IdentityScopeValue = "crooti_api offline_access"
     static let IdentityRefreshHeader = "refresh_token"
-    static let AccessToken = "crooti_auth_access_token"
-    static let ExpiresIn = "expires_in"
-    static let RefreshToken = "refresh_token"
-    static let IsUserLoggedIn = "isUserLoggerIn"
 }

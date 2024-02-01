@@ -1,10 +1,6 @@
 //
 //  GeneralFunctions.swift
 //  Crooti
-//
-//  Created by Bassel Chaitani on 5/21/17.
-//  Copyright © 2017 Bassel Chaitani. All rights reserved.
-//
 
 import Foundation
 

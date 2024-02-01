@@ -15,7 +15,6 @@ public protocol AuthRepository: WebRepository {
     func getUserInfo() async throws -> UserInfo
     func syncDeviceInfo()
     func signUp(model: SignUpModel) async throws -> SignUpInfo
-    func credentialsAuth(userName: String, password: String) async throws -> TokenInfo
 }
 
 struct AuthRepositoryImpl {
@@ -82,29 +81,6 @@ extension AuthRepositoryImpl: AuthRepository {
         let userInfo:SignUpInfo = try await execute(endpoint: API.signUp(param: param), isFullPath: true, logLevel: .debug)
         return userInfo
     }
-    
-    func credentialsAuth(userName: String, password: String) async throws -> TokenInfo {
-        let parameters : Parameters = [
-            Constants.IdentityClientIdHeader: Constants.IdentityClientIdValue,
-            Constants.IdentityClientSecretHeader: Constants.IdentityClientSecretValue,
-            Constants.IdentityGrantTypeHeader: Constants.IdentityGrantTypeValue,
-            Constants.IdentityScopeHeader: Constants.IdentityScopeValue,
-            "username": userName,
-            "password": password
-        ]
-        
-        let tokenInfo: TokenInfo = try await execute(endpoint: API.credentialsAuth(param: parameters), isFullPath: true, logLevel: .debug)
-        
-        UserDefaults.standard.set(tokenInfo.access_token, forKey: Constants.AccessToken)
-        UserDefaults.standard.set(tokenInfo.expires_in, forKey: Constants.ExpiresIn)
-        UserDefaults.standard.set(tokenInfo.refresh_token, forKey: Constants.RefreshToken)
-        UserDefaults.standard.set(true, forKey: Constants.IsUserLoggedIn)
-        
-        UserDefaults.standard.synchronize()
-        
-        return tokenInfo
-    }
-    
 }
 
 // MARK: - Configuration
@@ -112,17 +88,16 @@ extension AuthRepositoryImpl {
     enum API: ResourceType {
         case signIn(param: Parameters),
              signUp(param: Parameters),
-             credentialsAuth(param: Parameters),
              forgotPassword(param: Parameters),
              getUserInfo(param: Parameters),
              syncDeviceInfo(param: Parameters)
         
         var endPoint: Endpoint {
             switch self {
-            case .signIn, .credentialsAuth:
+            case .signIn:
                 return .post(path: "https://auth.crooti.com/connect/token")
             case .signUp:
-                return .post(path: "https://fetcher.crooti.com/account/register")
+                return .post(path: "/account/register")
             case .forgotPassword:
                 return .post(path: "/account/forgotPassword")
             case .getUserInfo:
@@ -136,7 +111,7 @@ extension AuthRepositoryImpl {
             switch self {
             case .signUp(let param), .forgotPassword(let param), .syncDeviceInfo(let param) :
                 return .requestParameters(bodyParameters: param, encoding: .jsonEncoding)
-            case .signIn(let param), .credentialsAuth(let param):
+            case .signIn(let param):
                 return .requestParameters(encoding: .urlEncodingPOST, urlParameters: param)
             case .getUserInfo(let param):
                 return .requestParameters(encoding: .urlEncodingGET, urlParameters: param)

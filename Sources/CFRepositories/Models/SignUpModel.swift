@@ -14,6 +14,7 @@ public struct SignUpModel {
     var email: String
     var phonenumber: String
     var userName: String
+    
     public init(firstName: String, lastName: String, password: String, email: String, phonenumber: String, userName: String) {
         self.firstName = firstName
         self.lastName = lastName
@@ -36,9 +37,23 @@ public struct SignUpModel {
     
     public func isValidPhoneNumber() -> Bool {
         return true
-    }
-    
-    
-    
-    
+    } 
+}
+
+public struct SignUpInfo: Codable {
+    public let meta: MetaData?
+    public let data: UserInfo?
+    public let pagination: PagingData?
+}
+
+public struct MetaData: Codable {
+    public let code: Int?
+    public let errorMessage: String?
+    public let errorType: String?
+}
+
+public struct PagingData: Codable {
+    var pageSize: Int?
+    let totalRecords: Int?
+    let isLastSet: Bool?
 }
