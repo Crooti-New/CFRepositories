@@ -14,8 +14,20 @@ public struct TokenInfo: Codable {
     let refresh_token: String
 }
 
+public struct SignUpInfo: Codable {
+    public let meta: MetaData?
+    public let data: UserInfo?
+    public let pagination: PagingData?
+}
+
+public struct MetaData: Codable {
+    public let code: Int?
+    public let errorMessage: String?
+    public let errorType: String?
+}
+
 public struct UserInfo: Codable {
-    let email: String
+    public let email: String
     let firstName: String
     let lastName: String
     let username: String
@@ -28,4 +40,10 @@ public struct UserInfo: Codable {
     let registeredOn: String
     let allowLogin: Bool
     let enablePushNotifications: Bool
+}
+
+public struct PagingData: Codable {
+    var pageSize: Int?
+    let totalRecords: Int?
+    let isLastSet: Bool?
 }

@@ -11,12 +11,11 @@ import Combine
 import Foundation
 
 public protocol AuthRepository: WebRepository {
-//    func singUp(customer: UserInfo) async throws -> UserInfo
-//    func forgotPassword(login: String) async throws -> SessionOutput
-//
     func signIn(email: String, password: String) async throws -> TokenInfo
     func getUserInfo() async throws -> UserInfo
     func syncDeviceInfo()
+    func signUp(model: SignUpModel) async throws -> SignUpInfo
+    func credentialsAuth(userName: String, password: String) async throws -> TokenInfo
 }
 
 struct AuthRepositoryImpl {
@@ -25,13 +24,13 @@ struct AuthRepositoryImpl {
     let bgQueue = DispatchQueue(label: "bg_auth_queue") // , attributes: .concurrent
     var interceptor: RequestInterceptor?
     
-//    @Injected var appState: AppStore<AppState>
-//    @Injected var env: EnvironmentCompany
+    //    @Injected var appState: AppStore<AppState>
+    //    @Injected var env: EnvironmentCompany
     
     init(configuration: ServiceConfiguration) {
         self.session = configuration.urlSession
         self.baseURL = configuration.environment.url
-//        self.interceptor = configuration.interceptor
+        //        self.interceptor = configuration.interceptor
     }
 }
 
@@ -45,23 +44,6 @@ public enum AuthError: Error, LocalizedError {
 
 // MARK: - Async impl
 extension AuthRepositoryImpl: AuthRepository {
-//    func singUp(customer: Customer) async throws -> Customer {
-//        let tmpCustomer = customer.with {
-//            $0.companyId = self.env.companyId
-//            $0.customerType = "MEMBER"
-//            $0.language = Locale.current.languageCode
-//        }.asDictionary
-//        let result = try await tokenParser(endpoint: API.singUp(param: tmpCustomer), logger: .debug)
-//        let customer: Customer = try await decodeJSON(data: result.data)
-//        _ = try? KeychainStore.shared.store(item: customer, for: .customer, update: \.userData.customer)
-//        return customer
-//    }
-//
-//    func forgotPassword(login: String) async throws -> SessionOutput {
-//        let param: Parameters = ["email": login, "companyId": env.companyId]
-//        return try await execute(endpoint: API.forgotPassword(param: param), logLevel: .debug)
-//    }
-//
     func signIn(email: String, password: String) async throws -> TokenInfo {
         
         let param: Parameters = [
@@ -84,6 +66,45 @@ extension AuthRepositoryImpl: AuthRepository {
         
     }
     
+    func signUp(model: SignUpModel) async throws -> SignUpInfo {
+        let param: Parameters = [
+            Constants.IdentityClientIdHeader: Constants.IdentityClientIdValue,
+            Constants.IdentityClientSecretHeader: Constants.IdentityClientSecretValue,
+            Constants.IdentityGrantTypeHeader: Constants.IdentityGrantTypeValue,
+            Constants.IdentityScopeHeader: Constants.IdentityScopeValue,
+            "firstName": model.firstName,
+            "lastName": model.lastName,
+            "password": model.password,
+            "email": model.email,
+            "phonenumber": model.phonenumber,
+            "userName":model.userName]
+        
+        let userInfo:SignUpInfo = try await execute(endpoint: API.signUp(param: param), isFullPath: true, logLevel: .debug)
+        return userInfo
+    }
+    
+    func credentialsAuth(userName: String, password: String) async throws -> TokenInfo {
+        let parameters : Parameters = [
+            Constants.IdentityClientIdHeader: Constants.IdentityClientIdValue,
+            Constants.IdentityClientSecretHeader: Constants.IdentityClientSecretValue,
+            Constants.IdentityGrantTypeHeader: Constants.IdentityGrantTypeValue,
+            Constants.IdentityScopeHeader: Constants.IdentityScopeValue,
+            "username": userName,
+            "password": password
+        ]
+        
+        let tokenInfo: TokenInfo = try await execute(endpoint: API.credentialsAuth(param: parameters), isFullPath: true, logLevel: .debug)
+        
+        UserDefaults.standard.set(tokenInfo.access_token, forKey: Constants.AccessToken)
+        UserDefaults.standard.set(tokenInfo.expires_in, forKey: Constants.ExpiresIn)
+        UserDefaults.standard.set(tokenInfo.refresh_token, forKey: Constants.RefreshToken)
+        UserDefaults.standard.set(true, forKey: Constants.IsUserLoggedIn)
+        
+        UserDefaults.standard.synchronize()
+        
+        return tokenInfo
+    }
+    
 }
 
 // MARK: - Configuration
@@ -91,16 +112,17 @@ extension AuthRepositoryImpl {
     enum API: ResourceType {
         case signIn(param: Parameters),
              signUp(param: Parameters),
+             credentialsAuth(param: Parameters),
              forgotPassword(param: Parameters),
              getUserInfo(param: Parameters),
              syncDeviceInfo(param: Parameters)
         
         var endPoint: Endpoint {
             switch self {
-            case .signIn:
+            case .signIn, .credentialsAuth:
                 return .post(path: "https://auth.crooti.com/connect/token")
             case .signUp:
-                return .post(path: "/account/register")
+                return .post(path: "https://fetcher.crooti.com/account/register")
             case .forgotPassword:
                 return .post(path: "/account/forgotPassword")
             case .getUserInfo:
@@ -114,7 +136,7 @@ extension AuthRepositoryImpl {
             switch self {
             case .signUp(let param), .forgotPassword(let param), .syncDeviceInfo(let param) :
                 return .requestParameters(bodyParameters: param, encoding: .jsonEncoding)
-            case .signIn(let param):
+            case .signIn(let param), .credentialsAuth(let param):
                 return .requestParameters(encoding: .urlEncodingPOST, urlParameters: param)
             case .getUserInfo(let param):
                 return .requestParameters(encoding: .urlEncodingGET, urlParameters: param)
