@@ -15,6 +15,8 @@ public protocol AuthRepository: WebRepository {
 //    func forgotPassword(login: String) async throws -> SessionOutput
 //
     func signIn(email: String, password: String) async throws -> TokenInfo
+    func getUserInfo() async throws -> UserInfo
+    func syncDeviceInfo()
 }
 
 struct AuthRepositoryImpl {
@@ -42,7 +44,7 @@ public enum AuthError: Error, LocalizedError {
 }
 
 // MARK: - Async impl
-extension AuthRepositoryImpl {
+extension AuthRepositoryImpl: AuthRepository {
 //    func singUp(customer: Customer) async throws -> Customer {
 //        let tmpCustomer = customer.with {
 //            $0.companyId = self.env.companyId
@@ -70,31 +72,28 @@ extension AuthRepositoryImpl {
             "username": email, "password": password]
         
         let tokenInfo:TokenInfo = try await execute(endpoint: API.signIn(param: param), isFullPath: true, logLevel: .debug)
+        UserDefaultHandler.userTokenInfo = tokenInfo
         return tokenInfo
     }
+    
+    func getUserInfo() async throws -> UserInfo {
+        
+    }
+    
+    func syncDeviceInfo() {
+        
+    }
+    
 }
 
-// MARK: - Protocol impl
-extension AuthRepositoryImpl: AuthRepository {
-//    func tokenParser(endpoint: ResourceType, logger: NetworkingLogLevel = .off) -> AnyPublisher<SessionOutput, Error> {
-//        execute(endpoint: endpoint, logLevel: logger)
-//            .tryMap { value in
-//                guard let response = value.response as? HTTPURLResponse,
-//                      let token = response.value(forHTTPHeaderField: KeychainKey.token.rawValue) else {
-//                          throw AuthError.tokenFindError
-//                      }
-//
-//                _ = try? KeychainStore.shared.store(item: token, for: .token)
-//                return value
-//            }.eraseToAnyPublisher()
-//    }
-}
 // MARK: - Configuration
 extension AuthRepositoryImpl {
     enum API: ResourceType {
         case signIn(param: Parameters),
              signUp(param: Parameters),
-             forgotPassword(param: Parameters)
+             forgotPassword(param: Parameters),
+             getUserInfo(param: Parameters),
+             syncDeviceInfo(param: Parameters)
         
         var endPoint: Endpoint {
             switch self {
@@ -104,15 +103,21 @@ extension AuthRepositoryImpl {
                 return .post(path: "/account/register")
             case .forgotPassword:
                 return .post(path: "/account/forgotPassword")
+            case .getUserInfo:
+                return .get(path: "/account/getUserInfo")
+            case .syncDeviceInfo:
+                return .post(path: "/account/submitDeviceInfo")
             }
         }
         
         var task: HTTPTask {
             switch self {
-            case .signUp(let param), .forgotPassword(let param) :
+            case .signUp(let param), .forgotPassword(let param), .syncDeviceInfo(let param) :
                 return .requestParameters(bodyParameters: param, encoding: .jsonEncoding)
             case .signIn(let param):
-                return .requestParameters(encoding: .urlEncoding, urlParameters: param)
+                return .requestParameters(encoding: .urlEncodingPOST, urlParameters: param)
+            case .getUserInfo(let param):
+                return .requestParameters(encoding: .urlEncodingGET, urlParameters: param)
             }
         }
         
