@@ -11,7 +11,7 @@ public struct SignUpModel {
     var firstName: String
     var lastName: String
     var password: String
-    var email: String
+    public var email: String
     var phonenumber: String
     var userName: String
     
@@ -30,19 +30,11 @@ public struct SignUpModel {
         }
         return true
     }
-    
-    public func isValidEmail() -> Bool {
-        return GeneralFunctions.isValidEmail(emailStr: self.email)
-    }
-    
-    public func isValidPhoneNumber() -> Bool {
-        return true
-    } 
 }
 
 public struct SignUpInfo: Codable {
     public let meta: MetaData?
-    public let data: User?
+    public let data: User.UserInfo?
     public let pagination: PagingData?
 }
 

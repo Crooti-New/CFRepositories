@@ -105,8 +105,13 @@ extension AuthRepositoryImpl: AuthRepository {
             "phonenumber": model.phonenumber,
             "userName":model.userName]
         
-        let userInfo:SignUpInfo = try await execute(endpoint: API.signUp(param: param), isFullPath: true, logLevel: .debug)
-        return userInfo
+        let signUpInfo:SignUpInfo = try await execute(endpoint: API.signUp(param: param), logLevel: .debug)
+        
+        if signUpInfo.meta?.code == 200 {
+            return signUpInfo
+        } else {
+            throw NSError(domain: signUpInfo.meta?.errorType ?? "", code: signUpInfo.meta?.code ?? 400, userInfo: [NSLocalizedDescriptionKey: signUpInfo.meta?.errorMessage ?? ""])
+        }
     }
 }
 
@@ -146,7 +151,12 @@ extension AuthRepositoryImpl {
         }
         
         var headers: HTTPHeaders? {
-            authHeader
+            switch self {
+            case .signUp(_), .signIn(_):
+                return nil
+            default: 
+                return authHeader
+            }
         }
     }
 }
