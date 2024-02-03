@@ -32,14 +32,3 @@ public struct SignUpModel {
     }
 }
 
-public struct SignUpInfo: Codable {
-    public let meta: MetaData?
-    public let data: User.UserInfo?
-    public let pagination: PagingData?
-}
-
-public struct PagingData: Codable {
-    var pageSize: Int?
-    let totalRecords: Int?
-    let isLastSet: Bool?
-}

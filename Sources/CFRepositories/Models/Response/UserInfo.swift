@@ -7,12 +7,6 @@
 
 import Foundation
 
-public struct TokenInfo: Codable {
-    let access_token: String
-    let expires_in: Int
-    let refresh_token: String
-}
-
 public struct User: Codable {
     public let meta: MetaData?
     public let data: UserInfo?
