@@ -18,7 +18,7 @@ public enum UserDefaultKey: String {
 
 public struct UserDefaultHandler {
     static let udStandard = UserDefaults.standard
-    static var userTokenInfo: TokenInfo? {
+    public static var userTokenInfo: TokenInfo? {
         get {
             UserDefaults.standard.codableObject(dataType: TokenInfo.self, key: UserDefaultKey.userTokenInfo.rawValue)
         }
@@ -27,7 +27,7 @@ public struct UserDefaultHandler {
         }
     }
     
-    static var userInfo: User? {
+    public static var userInfo: User? {
         get {
             UserDefaults.standard.codableObject(dataType: User.self, key: UserDefaultKey.userInfo.rawValue)
         }
@@ -36,7 +36,7 @@ public struct UserDefaultHandler {
         }
     }
     
-    static var userSelectedLanguage: String? {
+    public static var userSelectedLanguage: String? {
         get {
             UserDefaults.standard.string(forKey: UserDefaultKey.userSelectedLanguage.rawValue)
         }
@@ -45,7 +45,7 @@ public struct UserDefaultHandler {
         }
     }
     
-    static var pushDeviceToken: String? {
+    public static var pushDeviceToken: String? {
         get {
             UserDefaults.standard.string(forKey: UserDefaultKey.pushDeviceToken.rawValue)
         }

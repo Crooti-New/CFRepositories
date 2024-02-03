@@ -61,5 +61,9 @@ public final class CFRepositories<T: AppEnvironment> {
         Resolver.register {
             AuthRepositoryImpl(configuration: self.env.serviceConfig)
         }.implements(AuthRepository.self)
+        
+        Resolver.register {
+            CardRepositoryImpl(configuration: self.env.serviceConfig)
+        }.implements(CardRepository.self)
     }
 }
