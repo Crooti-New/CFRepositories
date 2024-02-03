@@ -86,7 +86,7 @@ extension AuthRepositoryImpl: AuthRepository {
         ]
         let result = try await execute(endpoint: API.syncDeviceInfo(param: param), logLevel: .debug)
         let json = try? JSON(data: result.data)
-        if json?["meta"]["code"].int == 200{
+        if let meta: MetaData = MetaData.metaFromJson(json: json?["meta"]), meta.code == 200 {
             return true
         } else {
             return false
