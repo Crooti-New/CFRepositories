@@ -16,6 +16,7 @@ public protocol AuthRepository: WebRepository {
     func getUserInfo() async throws -> User
     func syncDeviceInfo() async throws -> Bool
     func signUp(model: SignUpModel) async throws -> SignUpInfo
+    func forgotPassword(email: String) async throws
 }
 
 struct AuthRepositoryImpl {
@@ -113,6 +114,20 @@ extension AuthRepositoryImpl: AuthRepository {
             throw NSError(domain: signUpInfo.meta?.errorType ?? "", code: signUpInfo.meta?.code ?? 400, userInfo: [NSLocalizedDescriptionKey: signUpInfo.meta?.errorMessage ?? ""])
         }
     }
+    
+    func forgotPassword(email: String) async throws {
+        let param: Parameters = [
+            Constants.IdentityClientIdHeader: Constants.IdentityClientIdValue,
+            Constants.IdentityClientSecretHeader: Constants.IdentityClientSecretValue,
+            Constants.IdentityGrantTypeHeader: Constants.IdentityGrantTypeValue,
+            Constants.IdentityScopeHeader: Constants.IdentityScopeValue,
+            "email": email]
+        
+        try await execute(endpoint: API.forgotPassword(param: param), logLevel: .debug)
+        
+        
+    }
+    
 }
 
 // MARK: - Configuration
