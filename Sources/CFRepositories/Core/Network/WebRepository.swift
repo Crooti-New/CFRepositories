@@ -74,6 +74,7 @@ extension WebRepository {
         
         if code == 403 || code == 401 { // temp solution
             if retryIteration <= retryCount {
+                print("🔥🔥🔥 Start Refresh Token")
                 try await interceptor?.refreshToken()
                 return try await execute(endpoint: endpoint, httpCodes: httpCodes,
                                          logLevel: logLevel, retryIteration: retryIteration + 1)

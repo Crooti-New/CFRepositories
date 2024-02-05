@@ -7,7 +7,11 @@
 
 import Foundation
 
-public struct User: Codable {
+public struct User: Codable, Equatable {
+    public static func == (lhs: User, rhs: User) -> Bool {
+        return lhs.data?.email == rhs.data?.email
+    }
+    
     public let meta: MetaData?
     public let data: UserInfo?
     
@@ -27,3 +31,4 @@ public struct User: Codable {
         let enablePushNotifications: Bool
     }
 }
+

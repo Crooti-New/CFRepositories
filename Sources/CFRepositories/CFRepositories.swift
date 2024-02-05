@@ -29,7 +29,7 @@ public protocol RequestInterceptor {
 public protocol ServiceConfiguration {
     var environment: NetworkEnvironment { get }
     var urlSession: URLSession { get }
-//    var interceptor: RequestInterceptor { get }
+    var interceptor: RequestInterceptor { get }
 }
 
 public protocol AppEnvironment {

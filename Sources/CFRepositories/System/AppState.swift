@@ -41,4 +41,11 @@ public protocol SystemEvents {
 
 public extension AppState {
     var isAuthorized: Bool { userData.userInfo != nil }
+    
+    mutating func logout() {
+        self.userData.userInfo = nil
+        UserDefaultHandler.userInfo = nil
+        UserDefaultHandler.userTokenInfo = nil
+        NotificationCenter.default.post(name: Notification.Name("logOut"), object: nil)
+    }
 }

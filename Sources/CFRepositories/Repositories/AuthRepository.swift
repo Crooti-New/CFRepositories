@@ -12,7 +12,8 @@ import Foundation
 import UIKit
 
 public protocol AuthRepository: WebRepository {
-    func signIn(email: String, password: String) async throws -> TokenInfo
+    func signIn(email: String, password: String) async throws
+    func refreshToken() async throws
     func getUserInfo() async throws -> User
     func syncDeviceInfo() async throws -> Bool
     func signUp(model: SignUpModel) async throws -> SignUpInfo
@@ -25,13 +26,12 @@ struct AuthRepositoryImpl {
     let bgQueue = DispatchQueue(label: "bg_auth_queue") // , attributes: .concurrent
     var interceptor: RequestInterceptor?
     
-    //    @Injected var appState: AppStore<AppState>
-    //    @Injected var env: EnvironmentCompany
+    @Injected var appState: AppStore<AppState>
     
     init(configuration: ServiceConfiguration) {
         self.session = configuration.urlSession
         self.baseURL = configuration.environment.url
-        //        self.interceptor = configuration.interceptor
+        self.interceptor = configuration.interceptor
     }
 }
 
@@ -45,7 +45,7 @@ public enum AuthError: Error, LocalizedError {
 
 // MARK: - Async impl
 extension AuthRepositoryImpl: AuthRepository {
-    func signIn(email: String, password: String) async throws -> TokenInfo {
+    func signIn(email: String, password: String) async throws {
         let param: Parameters = [
             Constants.IdentityClientIdHeader: Constants.IdentityClientIdValue,
             Constants.IdentityClientSecretHeader: Constants.IdentityClientSecretValue,
@@ -55,7 +55,18 @@ extension AuthRepositoryImpl: AuthRepository {
         
         let tokenInfo:TokenInfo = try await execute(endpoint: API.signIn(param: param), isFullPath: true, logLevel: .debug)
         UserDefaultHandler.userTokenInfo = tokenInfo
-        return tokenInfo
+    }
+    
+    func refreshToken() async throws {
+        let param: Parameters = [
+            Constants.IdentityClientIdHeader: Constants.IdentityClientIdValue,
+            Constants.IdentityClientSecretHeader: Constants.IdentityClientSecretValue,
+            Constants.IdentityGrantTypeHeader: Constants.IdentityGrantTypeRefreshValue,
+            Constants.IdentityScopeHeader: Constants.IdentityScopeValue,
+            Constants.IdentityRefreshHeader: UserDefaultHandler.userTokenInfo?.access_token ?? ""]
+        
+        let tokenInfo:TokenInfo = try await execute(endpoint: API.signIn(param: param), isFullPath: true, logLevel: .debug)
+        UserDefaultHandler.userTokenInfo = tokenInfo
     }
     
     func getUserInfo() async throws -> User {

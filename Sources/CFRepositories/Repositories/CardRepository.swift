@@ -20,13 +20,12 @@ struct CardRepositoryImpl {
     let bgQueue = DispatchQueue(label: "bg_auth_queue") // , attributes: .concurrent
     var interceptor: RequestInterceptor?
     
-    //    @Injected var appState: AppStore<AppState>
-    //    @Injected var env: EnvironmentCompany
+    @Injected var appState: AppStore<AppState>
     
     init(configuration: ServiceConfiguration) {
         self.session = configuration.urlSession
         self.baseURL = configuration.environment.url
-        //        self.interceptor = configuration.interceptor
+        self.interceptor = configuration.interceptor
     }
 }
 
