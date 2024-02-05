@@ -63,7 +63,7 @@ extension AuthRepositoryImpl: AuthRepository {
             Constants.IdentityClientSecretHeader: Constants.IdentityClientSecretValue,
             Constants.IdentityGrantTypeHeader: Constants.IdentityGrantTypeRefreshValue,
             Constants.IdentityScopeHeader: Constants.IdentityScopeValue,
-            Constants.IdentityRefreshHeader: UserDefaultHandler.userTokenInfo?.access_token ?? ""]
+            Constants.IdentityRefreshHeader: UserDefaultHandler.userTokenInfo?.refresh_token ?? ""]
         
         let tokenInfo:TokenInfo = try await execute(endpoint: API.signIn(param: param), isFullPath: true, logLevel: .debug)
         UserDefaultHandler.userTokenInfo = tokenInfo
