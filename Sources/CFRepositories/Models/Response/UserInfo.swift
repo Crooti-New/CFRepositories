@@ -19,7 +19,7 @@ public struct User: Codable, Equatable {
         public let email: String
         let firstName: String
         let lastName: String
-        let username: String
+        public let username: String
         let userImageLink: String
         let emailConfirmed: Bool
         let numberOfShares: Int
@@ -29,6 +29,10 @@ public struct User: Codable, Equatable {
         let registeredOn: String
         let allowLogin: Bool
         let enablePushNotifications: Bool
+        
+        public var fullName: String {
+            return firstName + " " + lastName
+        }
     }
 }
 

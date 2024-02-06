@@ -30,6 +30,7 @@ public protocol System {
     var isActive: Bool { get set }
     var isSystemDialogShow: Bool { get set }
     var keyboardHeight: CGFloat { get set }
+    var locale: String { get set }
 }
 
 public protocol SystemEvents {
@@ -37,7 +38,6 @@ public protocol SystemEvents {
     func sceneWillResignActive()
     func logout()
 }
-
 
 public extension AppState {
     var isAuthorized: Bool { userData.userInfo != nil }

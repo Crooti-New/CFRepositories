@@ -17,7 +17,9 @@ public enum UserDefaultKey: String {
 }
 
 public struct UserDefaultHandler {
+    @LazyInjected static var appState: AppStore<AppState>
     static let udStandard = UserDefaults.standard
+    
     public static var userTokenInfo: TokenInfo? {
         get {
             UserDefaults.standard.codableObject(dataType: TokenInfo.self, key: UserDefaultKey.userTokenInfo.rawValue)
@@ -33,6 +35,7 @@ public struct UserDefaultHandler {
         }
         set {
             UserDefaults.standard.setCodableObject(newValue, forKey: UserDefaultKey.userInfo.rawValue)
+            appState[\.userData.userInfo] = UserDefaultHandler.userInfo
         }
     }
     
