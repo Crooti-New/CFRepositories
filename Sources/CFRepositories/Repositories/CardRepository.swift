@@ -12,8 +12,8 @@ import UIKit
 
 public protocol CardRepository: WebRepository {
     func getHomeCard() async throws -> [HomeCard]
-    func getSharedCards() async throws -> [HomeCard]
-    func getReceivedCards() async throws -> [HomeCard]
+    func getSharedCards() async throws -> [SharedCard]
+    func getReceivedCards() async throws -> [ReceivedCard]
 }
 
 struct CardRepositoryImpl {
@@ -33,15 +33,15 @@ struct CardRepositoryImpl {
 
 // MARK: - Async impl
 extension CardRepositoryImpl: CardRepository {
-    func getReceivedCards() async throws -> [HomeCard] {
+    func getReceivedCards() async throws -> [ReceivedCard] {
         let result = try await execute(endpoint: API.getReceivedCards, logLevel: .debug)
         let json = try? JSON(data: result.data)
         
         if let meta: MetaData = MetaData.metaFromJson(json: json?["meta"]) {
             if meta.code == 200 {
-                if let homeCards = json?["data"].prettyJSONString {
-                    let homeCardData: [HomeCard] = try JSONDecoder().decode([HomeCard].self, from: homeCards.data(using: String.Encoding.utf8.rawValue)!)
-                    return homeCardData
+                if let cards = json?["data"]["recievedCards"].prettyJSONString {
+                    let parsedCards: [ReceivedCard] = try JSONDecoder().decode([ReceivedCard].self, from: cards.data(using: String.Encoding.utf8.rawValue)!)
+                    return parsedCards
                 }
             } else {
                 throw NSError(domain: meta.errorType ?? "", code: meta.code ?? 400, userInfo: [NSLocalizedDescriptionKey: meta.errorMessage ?? ""])
@@ -50,15 +50,15 @@ extension CardRepositoryImpl: CardRepository {
         throw NSError(domain: "-1", code: -1, userInfo: nil)
     }
     
-    func getSharedCards() async throws -> [HomeCard] {
+    func getSharedCards() async throws -> [SharedCard] {
         let result = try await execute(endpoint: API.getSharedCards, logLevel: .debug)
         let json = try? JSON(data: result.data)
         
         if let meta: MetaData = MetaData.metaFromJson(json: json?["meta"]) {
             if meta.code == 200 {
-                if let homeCards = json?["data"].prettyJSONString {
-                    let homeCardData: [HomeCard] = try JSONDecoder().decode([HomeCard].self, from: homeCards.data(using: String.Encoding.utf8.rawValue)!)
-                    return homeCardData
+                if let cards = json?["data"]["sharedCards"].prettyJSONString {
+                    let parsedCards: [SharedCard] = try JSONDecoder().decode([SharedCard].self, from: cards.data(using: String.Encoding.utf8.rawValue)!)
+                    return parsedCards
                 }
             } else {
                 throw NSError(domain: meta.errorType ?? "", code: meta.code ?? 400, userInfo: [NSLocalizedDescriptionKey: meta.errorMessage ?? ""])
