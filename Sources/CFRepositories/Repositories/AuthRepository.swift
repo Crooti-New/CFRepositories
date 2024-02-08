@@ -18,6 +18,7 @@ public protocol AuthRepository: WebRepository {
     func syncDeviceInfo() async throws -> Bool
     func signUp(model: SignUpModel) async throws -> SignUpInfo
     func forgotPassword(email: String) async throws -> ForgotPWInfo
+    func changeUserName(userName: String) async throws -> ChangeUsernameInfo
 }
 
 struct AuthRepositoryImpl {
@@ -143,6 +144,16 @@ extension AuthRepositoryImpl: AuthRepository {
         
     }
     
+    func changeUserName(userName: String) async throws -> ChangeUsernameInfo {
+        let info: ChangeUsernameInfo = try await execute(endpoint: API.changeUserName(value: userName), logLevel: .debug)
+    
+        if info.meta?.code == 200 {
+            return info
+        } else {
+            throw NSError(domain: info.meta?.errorType ?? "", code: info.meta?.code ?? 400, userInfo: [NSLocalizedDescriptionKey: info.meta?.errorMessage ?? ""])
+        }
+    }
+    
 }
 
 // MARK: - Configuration
@@ -152,7 +163,8 @@ extension AuthRepositoryImpl {
              signUp(param: Parameters),
              forgotPassword(param: Parameters),
              getUserInfo,
-             syncDeviceInfo(param: Parameters)
+             syncDeviceInfo(param: Parameters),
+             changeUserName(value: String)
         
         var endPoint: Endpoint {
             switch self {
@@ -166,6 +178,8 @@ extension AuthRepositoryImpl {
                 return .get(path: "/account/getUserInfo")
             case .syncDeviceInfo:
                 return .post(path: "/account/submitDeviceInfo")
+            case .changeUserName(let value):
+                return.post(path: "/account/submitUsername/\(value)")
             }
         }
         
@@ -177,6 +191,8 @@ extension AuthRepositoryImpl {
                 return .requestParameters(encoding: .urlEncodingPOST, urlParameters: param)
             case .getUserInfo:
                 return .requestParameters(encoding: .urlEncodingGET, urlParameters: nil)
+            case .changeUserName:
+                return .requestParameters(encoding: .urlEncodingPOST, urlParameters: nil)
             }
         }
         
