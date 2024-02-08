@@ -19,6 +19,7 @@ public protocol AuthRepository: WebRepository {
     func signUp(model: SignUpModel) async throws -> SignUpInfo
     func forgotPassword(email: String) async throws -> ForgotPWInfo
     func changeUserName(userName: String) async throws -> ChangeUsernameInfo
+    func changePasswod(currentPassword: String, newPassword: String, confirmPassword: String) async throws -> ChangePasswordInfo
 }
 
 struct AuthRepositoryImpl {
@@ -144,6 +145,24 @@ extension AuthRepositoryImpl: AuthRepository {
         
     }
     
+    func changePasswod(currentPassword: String, newPassword: String, confirmPassword: String) async throws -> ChangePasswordInfo {
+        let param: Parameters = [
+            Constants.IdentityClientIdHeader: Constants.IdentityClientIdValue,
+            Constants.IdentityClientSecretHeader: Constants.IdentityClientSecretValue,
+            Constants.IdentityGrantTypeHeader: Constants.IdentityGrantTypeValue,
+            Constants.IdentityScopeHeader: Constants.IdentityScopeValue,
+            "oldPassword": currentPassword,
+            "newPassword": newPassword,
+            "confirmNewPassword": confirmPassword]
+        
+        let info: ChangePasswordInfo = try await execute(endpoint: API.changePassword(param: param), logLevel: .debug)
+        if info.meta?.code == 200 {
+            return info
+        } else {
+            throw NSError(domain: info.meta?.errorType ?? "", code: info.meta?.code ?? 400, userInfo: [NSLocalizedDescriptionKey: info.meta?.errorMessage ?? ""])
+        }
+    }
+    
     func changeUserName(userName: String) async throws -> ChangeUsernameInfo {
         let info: ChangeUsernameInfo = try await execute(endpoint: API.changeUserName(value: userName), logLevel: .debug)
     
@@ -164,7 +183,8 @@ extension AuthRepositoryImpl {
              forgotPassword(param: Parameters),
              getUserInfo,
              syncDeviceInfo(param: Parameters),
-             changeUserName(value: String)
+             changeUserName(value: String),
+             changePassword(param: Parameters)
         
         var endPoint: Endpoint {
             switch self {
@@ -179,7 +199,9 @@ extension AuthRepositoryImpl {
             case .syncDeviceInfo:
                 return .post(path: "/account/submitDeviceInfo")
             case .changeUserName(let value):
-                return.post(path: "/account/submitUsername/\(value)")
+                return .post(path: "/account/submitUsername/\(value)")
+            case .changePassword:
+                return .post(path: "/account/changePassword")
             }
         }
         
@@ -187,7 +209,7 @@ extension AuthRepositoryImpl {
             switch self {
             case .signUp(let param), .forgotPassword(let param), .syncDeviceInfo(let param) :
                 return .requestParameters(bodyParameters: param, encoding: .jsonEncoding)
-            case .signIn(let param):
+            case .signIn(let param), .changePassword(let param):
                 return .requestParameters(encoding: .urlEncodingPOST, urlParameters: param)
             case .getUserInfo:
                 return .requestParameters(encoding: .urlEncodingGET, urlParameters: nil)
