@@ -27,6 +27,7 @@ enum EncodingError: String, Error {
 
 enum ParameterEncoding {
     case urlEncodingPOST
+    case urlEncodingPUT
     case urlEncodingGET
     case jsonEncoding
     case urlAndJsonEncoding
@@ -50,6 +51,9 @@ enum ParameterEncoding {
                       let urlParameters = urlParameters else { return }
                 try URLParameterEncoder().encodeGET(urlRequest: &urlRequest, with: urlParameters)
                 try JSONParameterEncoder().encode(urlRequest: &urlRequest, with: bodyParameters)
+            case .urlEncodingPUT:
+                guard let urlParameters = urlParameters else { return }
+                try URLParameterEncoder().encodePOST(urlRequest: &urlRequest, with: urlParameters)
             }
         } catch {
             throw error
@@ -76,6 +80,22 @@ private struct URLParameterEncoder: ParameterEncoderProtocol {
             return "\(key)=\(self.percentEscapeString(value as! String))"
         }
         urlRequest.httpBody = parameterArray.joined(separator: "&").data(using: String.Encoding.utf8)
+        
+        
+        if urlRequest.value(forHTTPHeaderField: "Content-Type") == nil {
+            urlRequest.setValue("application/x-www-form-urlencoded; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        }
+    }
+    
+    func encodePUT(urlRequest: inout URLRequest, with parameters: Parameters) throws {
+        guard let url = urlRequest.url else { throw EncodingError.missingURL }
+        
+        let parameterArray = parameters.map { (arg) -> String in
+            let (key, value) = arg
+            return "\(key)=\(self.percentEscapeString(value as! String))"
+        }
+        urlRequest.httpBody = parameterArray.joined(separator: "&").data(using: String.Encoding.utf8)
+        urlRequest.httpMethod = "PUT"
         
         
         if urlRequest.value(forHTTPHeaderField: "Content-Type") == nil {

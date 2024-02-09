@@ -20,6 +20,8 @@ public protocol AuthRepository: WebRepository {
     func forgotPassword(email: String) async throws -> ForgotPWInfo
     func changeUserName(userName: String) async throws -> ChangeUsernameInfo
     func changePasswod(currentPassword: String, newPassword: String, confirmPassword: String) async throws -> ChangePasswordInfo
+    func submitPhoneNumber(phoneNumber: String) async throws -> SubmitPhoneNumberInfo
+    func submitVerificationCode(code: String) async throws -> SubmitPhoneNumberInfo
 }
 
 struct AuthRepositoryImpl {
@@ -173,6 +175,24 @@ extension AuthRepositoryImpl: AuthRepository {
         }
     }
     
+    func submitPhoneNumber(phoneNumber: String) async throws -> SubmitPhoneNumberInfo {
+        let info: SubmitPhoneNumberInfo = try await execute(endpoint: API.submitPhoneNumber(phone: phoneNumber), logLevel: .debug)
+        
+        if info.meta?.code == 200 {
+            return info
+        } else {
+            throw NSError(domain: info.meta?.errorType ?? "", code: info.meta?.code ?? 400, userInfo: [NSLocalizedDescriptionKey: info.meta?.errorMessage ?? ""])
+        }
+    }
+    
+    func submitVerificationCode(code: String) async throws -> SubmitPhoneNumberInfo {
+        let info: SubmitPhoneNumberInfo = try await execute(endpoint: API.submitVerificationCode(code: code), logLevel: .debug)
+        if info.meta?.code == 200 {
+            return info
+        } else {
+            throw NSError(domain: info.meta?.errorType ?? "", code: info.meta?.code ?? 400, userInfo: [NSLocalizedDescriptionKey: info.meta?.errorMessage ?? ""])
+        }
+    }
 }
 
 // MARK: - Configuration
@@ -184,6 +204,8 @@ extension AuthRepositoryImpl {
              getUserInfo,
              syncDeviceInfo(param: Parameters),
              changeUserName(value: String),
+             submitPhoneNumber(phone: String),
+             submitVerificationCode(code: String),
              changePassword(param: Parameters)
         
         var endPoint: Endpoint {
@@ -202,6 +224,10 @@ extension AuthRepositoryImpl {
                 return .post(path: "/account/submitUsername/\(value)")
             case .changePassword:
                 return .post(path: "/account/changePassword")
+            case .submitPhoneNumber(let value):
+                return .put(path: "/account/submitPhonenumber/\(value)")
+            case .submitVerificationCode(let value):
+                return .put(path: "/account/submitVerificationCode/\(value)")
             }
         }
         
@@ -215,6 +241,8 @@ extension AuthRepositoryImpl {
                 return .requestParameters(encoding: .urlEncodingGET, urlParameters: nil)
             case .changeUserName:
                 return .requestParameters(encoding: .urlEncodingPOST, urlParameters: nil)
+            case .submitPhoneNumber, .submitVerificationCode:
+                return .requestParameters(encoding: .urlEncodingPUT, urlParameters: nil)
             }
         }
         
