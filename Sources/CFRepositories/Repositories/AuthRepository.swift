@@ -14,7 +14,7 @@ import UIKit
 public protocol AuthRepository: WebRepository {
     func signIn(email: String, password: String) async throws
     func refreshToken() async throws
-    func getUserInfo() async throws -> User
+    func getUserInfo() async throws
     func syncDeviceInfo() async throws -> Bool
     func signUp(model: SignUpModel) async throws -> SignUpInfo
     func forgotPassword(email: String) async throws -> ForgotPWInfo
@@ -73,12 +73,11 @@ extension AuthRepositoryImpl: AuthRepository {
         UserDefaultHandler.userTokenInfo = tokenInfo
     }
     
-    func getUserInfo() async throws -> User {
+    func getUserInfo() async throws {
         let user: User = try await execute(endpoint: API.getUserInfo, logLevel: .debug)
         
         if user.meta?.code == 200 {
             UserDefaultHandler.userInfo = user
-            return user
         } else {
             throw NSError(domain: user.meta?.errorType ?? "", code: user.meta?.code ?? 400, userInfo: [NSLocalizedDescriptionKey: user.meta?.errorMessage ?? ""])
         }
@@ -110,16 +109,13 @@ extension AuthRepositoryImpl: AuthRepository {
     
     func signUp(model: SignUpModel) async throws -> SignUpInfo {
         let param: Parameters = [
-            Constants.IdentityClientIdHeader: Constants.IdentityClientIdValue,
-            Constants.IdentityClientSecretHeader: Constants.IdentityClientSecretValue,
-            Constants.IdentityGrantTypeHeader: Constants.IdentityGrantTypeValue,
-            Constants.IdentityScopeHeader: Constants.IdentityScopeValue,
             "firstName": model.firstName,
             "lastName": model.lastName,
             "password": model.password,
             "email": model.email,
             "phonenumber": model.phonenumber,
-            "userName":model.userName]
+            "userName":model.userName
+        ]
         
         let signUpInfo:SignUpInfo = try await execute(endpoint: API.signUp(param: param), logLevel: .debug)
         
@@ -132,11 +128,8 @@ extension AuthRepositoryImpl: AuthRepository {
     
     func forgotPassword(email: String) async throws -> ForgotPWInfo {
         let param: Parameters = [
-            Constants.IdentityClientIdHeader: Constants.IdentityClientIdValue,
-            Constants.IdentityClientSecretHeader: Constants.IdentityClientSecretValue,
-            Constants.IdentityGrantTypeHeader: Constants.IdentityGrantTypeValue,
-            Constants.IdentityScopeHeader: Constants.IdentityScopeValue,
-            "email": email]
+            "email": email
+        ]
         
         let forgotPWInfo: ForgotPWInfo = try await execute(endpoint: API.forgotPassword(param: param), logLevel: .debug)
         if forgotPWInfo.meta?.code == 200 {
@@ -149,10 +142,6 @@ extension AuthRepositoryImpl: AuthRepository {
     
     func changePasswod(currentPassword: String, newPassword: String, confirmPassword: String) async throws -> ChangePasswordInfo {
         let param: Parameters = [
-            Constants.IdentityClientIdHeader: Constants.IdentityClientIdValue,
-            Constants.IdentityClientSecretHeader: Constants.IdentityClientSecretValue,
-            Constants.IdentityGrantTypeHeader: Constants.IdentityGrantTypeValue,
-            Constants.IdentityScopeHeader: Constants.IdentityScopeValue,
             "oldPassword": currentPassword,
             "newPassword": newPassword,
             "confirmNewPassword": confirmPassword]
@@ -233,16 +222,19 @@ extension AuthRepositoryImpl {
         
         var task: HTTPTask {
             switch self {
-            case .signUp(let param), .forgotPassword(let param), .syncDeviceInfo(let param) :
+            case .signUp(let param),
+                    .forgotPassword(let param),
+                    .syncDeviceInfo(let param),
+                    .changePassword(let param) :
                 return .requestParameters(bodyParameters: param, encoding: .jsonEncoding)
-            case .signIn(let param), .changePassword(let param):
+            case .signIn(let param):
                 return .requestParameters(encoding: .urlEncodingPOST, urlParameters: param)
             case .getUserInfo:
                 return .requestParameters(encoding: .urlEncodingGET, urlParameters: nil)
             case .changeUserName:
                 return .requestParameters(encoding: .urlEncodingPOST, urlParameters: nil)
             case .submitPhoneNumber, .submitVerificationCode:
-                return .requestParameters(encoding: .urlEncodingPUT, urlParameters: nil)
+                return .requestParameters(encoding: .urlEncodingPOST, urlParameters: nil)
             }
         }
         
