@@ -7,9 +7,9 @@
 
 import Foundation
 
-public struct EventTag: Codable {
+public struct EventTag: Codable, Hashable {
     let tagId : String
-    let title : String
-    let imageUrl : String
+    public let title : String
+    let image : String
     var isSelected : Bool?
 }

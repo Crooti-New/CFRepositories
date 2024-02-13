@@ -7,9 +7,9 @@
 
 import Foundation
 
-public struct EventCard: Codable {
-    let cardId : String
-    let imageUrl : String
-    let numberOfCards : Int
-    let tagIds : [String]
+public struct EventCard: Codable, Hashable {
+    let backgroundId : String
+    public let image : String
+    public let numberOfShares : Int
+    public let tagIds : [String]
 }
