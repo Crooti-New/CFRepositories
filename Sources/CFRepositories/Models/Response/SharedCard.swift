@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct SharedCard: Codable, Hashable {
+public struct SharedCard: Codable, Hashable, ICard {
     public let thumbnail: String
     public let image: String
     public let numberOfUnread: Bool
@@ -16,7 +16,20 @@ public struct SharedCard: Codable, Hashable {
     public let eventId: String
     public let users: [SharedUser]
     
-    public func formattedSharedOn() -> String {
+    public func getPlatformSharedOn() -> String {
+        return platformSharedOn
+    }
+    
+    public func getImage() -> String {
+        return image
+    }
+    
+    public func getSharedOn() -> String {
+        return formattedSharedOn()
+    }
+
+    
+    private func formattedSharedOn() -> String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS"
         
